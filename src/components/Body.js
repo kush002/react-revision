@@ -1,13 +1,17 @@
-import { useState, useEffect } from "react";
-import RestaurantCard from "./RestaurantCard";
+import { useState, useEffect, useContext } from "react";
+import RestaurantCard, { TopRated } from "./RestaurantCard";
 import Shimmer from "./Shimmer";
 import resObj from "../utils/mockData";
 import { Link } from "react-router-dom";
+import UserContext from "../utils/UserContext";
 
 const Body = () => {
   const [listOfResturant, setListOfRestaurant] = useState([]);
   const [filteredResList, setFilteredResList] = useState([]);
+
   const [search, setSearch] = useState("");
+
+  const RestaurantCardTop = TopRated(RestaurantCard);
 
   useEffect(() => {
     fetchData();
@@ -27,11 +31,14 @@ const Body = () => {
       json?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
     );
   };
+
+  const { setUserName, loggedInUser } = useContext(UserContext);
   return (
     <div className="res-body">
-      <div className="filter-cont">
-        <div className="search">
+      <div className="flex my-10">
+        <div className="flex mr-10 ">
           <input
+            className="border border-black mx-4 rounded-md"
             type="search"
             value={search}
             onChange={(e) => {
@@ -39,6 +46,7 @@ const Body = () => {
             }}
           ></input>
           <button
+            className="mx-1 bg-blue-400 px-4 rounded-md font-semibold shadow-md"
             type="button"
             onClick={() => {
               const filteredList = listOfResturant.filter((res) =>
@@ -51,19 +59,28 @@ const Body = () => {
           </button>
         </div>
         <button
-          className="filter-btn"
+          className="mx-10 bg-gray-400 px-4 rounded-md font-semibold shadow-md"
           onClick={() => {
             const filteredList = listOfResturant.filter(
               (res) => res.info.avgRating > 4
             );
-            setListOfRestaurant(filteredList);
+            setFilteredResList(filteredList);
           }}
         >
           Top Rated Producted
         </button>
+        <div>
+          <label>UserName: </label>
+          <input
+            className="border border-black"
+            type="text"
+            value={loggedInUser}
+            onChange={(e) => setUserName(e.target.value)}
+          />
+        </div>
       </div>
 
-      <div className="res-container">
+      <div className="flex flex-wrap">
         {listOfResturant.length === 0 ? (
           <Shimmer />
         ) : (
@@ -72,7 +89,11 @@ const Body = () => {
               key={restaurant.info.id}
               to={`restaurants/${restaurant.info.id}`}
             >
-              <RestaurantCard resData={restaurant} />
+              {restaurant.info.avgRating > 4 ? (
+                <RestaurantCardTop resData={restaurant} />
+              ) : (
+                <RestaurantCard resData={restaurant} />
+              )}
             </Link>
           ))
         )}
